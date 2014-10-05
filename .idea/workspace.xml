@@ -66,18 +66,18 @@
       <file leaf-file-name="FmtProjectPlugin.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/anadathur/intellij/fmtplugin/FmtProjectPlugin.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-0.36488026" vertical-offset="736" max-vertical-offset="1984">
-              <caret line="26" column="59" selection-start-line="26" selection-start-column="59" selection-end-line="26" selection-end-column="59" />
+            <state vertical-scroll-proportion="1.258837" vertical-offset="0" max-vertical-offset="1936">
+              <caret line="69" column="0" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#2322#3734#0" expanded="true" />
-                <element signature="e#2612#3589#0" expanded="true" />
-                <element signature="e#2736#3531#0" expanded="true" />
-                <element signature="e#3496#3497#0" expanded="true" />
-                <element signature="e#3562#3563#0" expanded="true" />
-                <element signature="e#3719#3720#0" expanded="true" />
-                <element signature="e#4147#4148#0" expanded="true" />
-                <element signature="e#4221#4222#0" expanded="true" />
+                <element signature="e#2278#3409#0" expanded="true" />
+                <element signature="e#2568#3264#0" expanded="true" />
+                <element signature="e#2692#3206#0" expanded="true" />
+                <element signature="e#3171#3172#0" expanded="true" />
+                <element signature="e#3237#3238#0" expanded="true" />
+                <element signature="e#3394#3395#0" expanded="true" />
+                <element signature="e#3822#3823#0" expanded="true" />
+                <element signature="e#3896#3897#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -1208,18 +1208,18 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/anadathur/intellij/fmtplugin/FmtProjectPlugin.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-0.36488026" vertical-offset="736" max-vertical-offset="1984">
-          <caret line="26" column="59" selection-start-line="26" selection-start-column="59" selection-end-line="26" selection-end-column="59" />
+        <state vertical-scroll-proportion="1.258837" vertical-offset="0" max-vertical-offset="1936">
+          <caret line="69" column="0" selection-start-line="69" selection-start-column="0" selection-end-line="69" selection-end-column="0" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#2322#3734#0" expanded="true" />
-            <element signature="e#2612#3589#0" expanded="true" />
-            <element signature="e#2736#3531#0" expanded="true" />
-            <element signature="e#3496#3497#0" expanded="true" />
-            <element signature="e#3562#3563#0" expanded="true" />
-            <element signature="e#3719#3720#0" expanded="true" />
-            <element signature="e#4147#4148#0" expanded="true" />
-            <element signature="e#4221#4222#0" expanded="true" />
+            <element signature="e#2278#3409#0" expanded="true" />
+            <element signature="e#2568#3264#0" expanded="true" />
+            <element signature="e#2692#3206#0" expanded="true" />
+            <element signature="e#3171#3172#0" expanded="true" />
+            <element signature="e#3237#3238#0" expanded="true" />
+            <element signature="e#3394#3395#0" expanded="true" />
+            <element signature="e#3822#3823#0" expanded="true" />
+            <element signature="e#3896#3897#0" expanded="true" />
           </folding>
         </state>
       </provider>

@@ -9,7 +9,6 @@ import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -66,9 +65,7 @@ public class FmtProjectPlugin implements ProjectComponent {
                             public void run() {
                                 application.runWriteAction(new Runnable() {
                                     public void run() {
-                                        final PsiDocumentManager documentManager = PsiDocumentManager.getInstance(psiManager.getProject());
                                         codeStyleManager.reformatText(psiFile, Arrays.asList(psiFile.getTextRange()));
-                                        //createFormatter().processText(psiFile, new FormatTextRanges(psiFile.getTextRange(), true), false);
                                         editorManager.closeFile(psiFile.getVirtualFile());
                                         synchronized (obj){
                                             obj.notify();
