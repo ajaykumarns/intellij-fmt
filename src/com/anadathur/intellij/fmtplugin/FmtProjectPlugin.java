@@ -5,16 +5,16 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileAdapter;
+import com.intellij.openapi.vfs.VirtualFileEvent;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
-import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.intellij.psi.impl.source.codeStyle.CodeFormatterFacade;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -38,12 +38,6 @@ public class FmtProjectPlugin implements ProjectComponent {
         codeStyleManager = CodeStyleManager.getInstance(project);
     }
 
-    @NotNull
-    private CodeFormatterFacade createFormatter() {
-        final CodeStyleSettings styleSettings = CodeStyleSettingsManager.getSettings(psiManager.getProject());
-        return new CodeFormatterFacade(styleSettings);
-    }
-
     public void initComponent() {
         if (server == null) {
             server = new ApplicationServer(8999, new Formatter());
@@ -51,24 +45,36 @@ public class FmtProjectPlugin implements ProjectComponent {
     }
 
     private class Formatter implements ApplicationServer.RequestHandler {
+        {
+            LocalFileSystem.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
+                @Override
+                public void contentsChanged(@NotNull VirtualFileEvent event) {
+                    super.contentsChanged(event);
+                }
+            });
+        }
+
         @Override
-        public void format(File file) {
-            final Object obj = new Object();
+        public synchronized void format(File file) {
+            if (!file.exists() || file.canRead())
+                return;
+            final Object formattingSync = new Object();
             final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
 
             application.invokeLater(new Runnable() {
                 public void run() {
                     try {
-                        editorManager.openFile(vFile, true);
+                        //editorManager.openFile(vFile, true);
                         final PsiFile psiFile = psiManager.findFile(vFile);
                         WriteCommandAction.runWriteCommandAction(project, new Runnable() {
                             public void run() {
                                 application.runWriteAction(new Runnable() {
                                     public void run() {
                                         codeStyleManager.reformatText(psiFile, Arrays.asList(psiFile.getTextRange()));
-                                        editorManager.closeFile(psiFile.getVirtualFile());
-                                        synchronized (obj){
-                                            obj.notify();
+                                        FileDocumentManager.getInstance().saveAllDocuments();
+                                        //editorManager.closeFile(psiFile.getVirtualFile());
+                                        synchronized (formattingSync){
+                                            formattingSync.notify();
                                         }
                                     }
                                 });
@@ -80,9 +86,9 @@ public class FmtProjectPlugin implements ProjectComponent {
                 }
             }, ModalityState.any());
 
-            synchronized (obj){
+            synchronized (formattingSync){
                 try {
-                    obj.wait();
+                    formattingSync.wait();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
