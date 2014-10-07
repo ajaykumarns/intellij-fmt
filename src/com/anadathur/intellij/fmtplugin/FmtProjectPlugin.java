@@ -56,7 +56,7 @@ public class FmtProjectPlugin implements ProjectComponent {
 
         @Override
         public synchronized void format(File file) {
-            if (!file.exists() || file.canRead())
+            if (!file.exists() || !file.canRead())
                 return;
             final Object formattingSync = new Object();
             final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
