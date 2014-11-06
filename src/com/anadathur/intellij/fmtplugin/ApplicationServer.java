@@ -18,6 +18,8 @@ public class ApplicationServer {
     private final RequestHandler formatter;
     private com.sun.net.httpserver.HttpServer httpServer;
     private boolean debug = true;
+    private final com.intellij.openapi.diagnostic.Logger logger =
+            com.intellij.openapi.diagnostic.Logger.getInstance(getClass());
 
     public ApplicationServer(int port, RequestHandler formatter) {
         this.port = port;
@@ -49,13 +51,21 @@ public class ApplicationServer {
                 }
 
                 File file = new File(completeFilePath);
+                if (!file.exists()) {
+                    logger.info(String.format("[%s] File : %s does not exist.", tName, file));
+                    arg.sendResponseHeaders(500, 0);
+                    arg.getResponseBody().close();
+                    return;
+                }
+
                 try {
                     formatter.format(file);
-                    System.out.printf("[%s] Formatting %s completed in %s ms.\n", tName, completeFilePath, (System.currentTimeMillis() - before));
+                    logger.info(String.format("[%s] Formatting %s completed in %s ms.", tName, completeFilePath,
+                            (System.currentTimeMillis() - before)));
                     arg.sendResponseHeaders(200, 0);
                     arg.getResponseBody().close();
                 } catch (Exception e) {
-                    System.err.println("Encountered error trying to handle request: " + arg.getRequestURI());
+                    logger.error("Encountered error trying to handle request: " + arg.getRequestURI());
                     e.printStackTrace();
                     arg.sendResponseHeaders(500, 0);
                     arg.getResponseBody().close();

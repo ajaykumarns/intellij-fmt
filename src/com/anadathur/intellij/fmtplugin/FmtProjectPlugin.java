@@ -5,6 +5,8 @@ import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.command.WriteCommandAction;
 import com.intellij.openapi.components.ProjectComponent;
+import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
@@ -12,6 +14,7 @@ import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileAdapter;
 import com.intellij.openapi.vfs.VirtualFileEvent;
+import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiManager;
 import com.intellij.psi.codeStyle.CodeStyleManager;
@@ -29,13 +32,16 @@ public class FmtProjectPlugin implements ProjectComponent {
     private final Application application = ApplicationManager.getApplication();
     private final FileEditorManager editorManager;
     private final PsiManager psiManager;
-    private final CodeStyleManager codeStyleManager;
+    private final CodeStyleManager codeStyleMgr;
+    private final PsiDocumentManager psiDocumentMgr;
+    private final Logger logger = com.intellij.openapi.diagnostic.Logger.getInstance(getClass());
 
     public FmtProjectPlugin(Project project) {
         this.project = project;
         editorManager = FileEditorManager.getInstance(project);
         psiManager = PsiManager.getInstance(project);
-        codeStyleManager = CodeStyleManager.getInstance(project);
+        codeStyleMgr = CodeStyleManager.getInstance(project);
+        psiDocumentMgr = PsiDocumentManager.getInstance(project);
     }
 
     public void initComponent() {
@@ -45,6 +51,10 @@ public class FmtProjectPlugin implements ProjectComponent {
     }
 
     private class Formatter implements ApplicationServer.RequestHandler {
+        final FileDocumentManager fileDocMgr = FileDocumentManager.getInstance();
+        final LocalFileSystem localFileSystem = LocalFileSystem.getInstance();
+
+        Formatter()
         {
             LocalFileSystem.getInstance().addVirtualFileListener(new VirtualFileAdapter() {
                 @Override
@@ -56,10 +66,11 @@ public class FmtProjectPlugin implements ProjectComponent {
 
         @Override
         public synchronized void format(File file) {
+
             if (!file.exists() || !file.canRead())
                 return;
             final Object formattingSync = new Object();
-            final VirtualFile vFile = LocalFileSystem.getInstance().findFileByIoFile(file);
+            final VirtualFile vFile = localFileSystem.refreshAndFindFileByIoFile(file);
 
             application.invokeLater(new Runnable() {
                 public void run() {
@@ -70,9 +81,12 @@ public class FmtProjectPlugin implements ProjectComponent {
                             public void run() {
                                 application.runWriteAction(new Runnable() {
                                     public void run() {
-                                        codeStyleManager.reformatText(psiFile, Arrays.asList(psiFile.getTextRange()));
-                                        FileDocumentManager.getInstance().saveAllDocuments();
-                                        //editorManager.closeFile(psiFile.getVirtualFile());
+                                        codeStyleMgr.reformatText(psiFile, Arrays.asList(psiFile.getTextRange()));
+                                        Document document = fileDocMgr.getDocument(vFile);
+                                        psiDocumentMgr.doPostponedOperationsAndUnblockDocument(document);
+                                        psiDocumentMgr.commitDocument(document);
+                                        fileDocMgr.saveDocument(document);
+                                        editorManager.closeFile(psiFile.getVirtualFile());
                                         synchronized (formattingSync){
                                             formattingSync.notify();
                                         }
@@ -81,16 +95,16 @@ public class FmtProjectPlugin implements ProjectComponent {
                             }
                         });
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.error(e);
                     }
                 }
             }, ModalityState.any());
 
             synchronized (formattingSync){
                 try {
-                    formattingSync.wait();
+                    formattingSync.wait(15000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    logger.error(e);
                 }
             }
         }
@@ -109,13 +123,14 @@ public class FmtProjectPlugin implements ProjectComponent {
 
     public void projectOpened() {
         try {
+            logger.info("Starting HTTP Server... ");
             server.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
     public void projectClosed() {
-        System.out.println("Stopping HTTP Server...");
+        logger.info("Stopping HTTP Server...");
         server.stop();
     }
 }
